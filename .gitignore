@@ -1,0 +1,62 @@
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+local.properties
+.local/
+
+# Build output and editor files
+.idea/
+.vscode/
+.DS_Store
+._*
+Thumbs.db
+**/build/
+*.log
+captures/
+__pycache__/
+*.pyc
+
+# HarmonyOS local dependencies, build caches and signed artifacts
+oh_modules/
+node_modules/
+.hvigor/
+*.har
+*.hap
+*.hsp
+*.p7b
+*.cer
+*.csr
+*.p12
+harmony/entry/libs/
+harmony/entry/src/main/resources/rawfile/engine/
+harmony/entry/src/main/resources/rawfile/sdk-notices/
+harmony/entry/src/main/resources/rawfile/snapbeauty.license
+
+# Credentials, authorizations and signing material
+*.license
+!harmony/SampleLicense/snapbeauty.license
+*.pem
+*.key
+*.pfx
+*.p8
+*.p7c
+*.p7s
+*.provisionprofile
+*.conf
+*.dpapi
+*.enc
+.netrc
+.npmrc
+.pypirc
+credentials.json
+service-account*.json
+
+# Local verification media and receipts
+**/Verification/
+**/verification/
+makeup-fixture.jpg
+makeup-fixture-regions.json
+
+# Generated host makeup
+harmony/entry/src/main/resources/rawfile/demo-makeup/

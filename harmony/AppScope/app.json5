@@ -1,0 +1,10 @@
+{
+  "app": {
+    "bundleName": "ai.snapbeauty.samples",
+    "vendor": "SnapBeauty",
+    "versionCode": 2,
+    "versionName": "0.1.1",
+    "icon": "$media:app_icon",
+    "label": "$string:app_name"
+  }
+}
