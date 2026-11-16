@@ -4,7 +4,7 @@
 
 相机页提供 11 项美肤、25 项美型、与 Android/iOS 同源的 15 套自制妆容及 27 个 LUT，支持妆容滤镜联动、独立浓度、双向参数中性值 0、单项还原、全重置、按住对比、面板收放、前后镜头和参数/选项保存。妆容与滤镜直接显示 ID。默认只启用基础美肤，美型中性，无妆容和滤镜；单项还原回中性，全重置回基础美肤默认值。
 
-鸿蒙固定使用 OHPM 上的 SnapBeauty **1.3.0**，以根目录 `sdk.lock.json` 的大小与 SHA-256 为准。HAR 不含妆容贴图、唇色、面板图标和目录；`prepare_makeup.py` 从 `harmony/HostAssetsSource/` 的 53 份原创素材生成鸿蒙的宿主资源，`MakeupAssets.ets` 校验并合并图像索引后交给引擎。SDK 新增能力尚未全部提供示例 UI。美颜效果需要有效应用绑定 License；未授权时返回原图。TRTC、Agora、ZEGO 鸿蒙场景尚未实现。
+鸿蒙固定使用 OHPM 上的 SnapBeauty **1.3.1**，以根目录 `sdk.lock.json` 的大小与 SHA-256 为准。HAR 不含妆容贴图、唇色、面板图标和目录；`prepare_makeup.py` 从 `harmony/HostAssetsSource/` 的 53 份原创素材生成鸿蒙的宿主资源，`MakeupAssets.ets` 校验并合并图像索引后交给引擎。SDK 新增能力尚未全部提供示例 UI。美颜效果需要有效应用绑定 License；未授权时返回原图。TRTC、Agora、ZEGO 鸿蒙场景尚未实现。
 
 ## 准备与构建
 
