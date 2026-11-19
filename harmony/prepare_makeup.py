@@ -58,6 +58,28 @@ def prepare():
             item['argb'] = save(bgra.tobytes(), '.argb')
             images[relative] = item
         (stage / 'resources.json').write_text(json.dumps({'schema': 1, 'images': images}, indent=2) + '\n', encoding='utf-8')
+        # CC BY-SA host filter LUTs: decoded once here to opaque RGBA8 for SnapBeautyEngine.registerFilter;
+        # their attribution, change notes and licence text ship next to them (host-filters/NOTICE.md).
+        filters_source = SOURCE / 'host-filters'
+        filters_manifest = json.loads((filters_source / 'manifest.json').read_text(encoding='utf-8'))
+        (stage / 'host-filters/luts').mkdir(parents=True)
+        for name in ['NOTICE.md', 'LICENSE-CC-BY-SA-4.0.txt', 'RawTherapee-README.txt']:
+            (stage / 'host-filters' / name).write_bytes((filters_source / name).read_bytes())
+        if hashlib.sha256((filters_source / filters_manifest['license']['file']).read_bytes()).hexdigest() != filters_manifest['license']['sha256']:
+            raise ValueError('Host filter licence text differs from its manifest')
+        host_filters = []
+        for row in filters_manifest['files']:
+            png = (filters_source / row['file']).read_bytes()
+            if hashlib.sha256(png).hexdigest() != row['sha256']:
+                raise ValueError('Host filter checksum differs: ' + row['file'])
+            with Image.open(filters_source / row['file']) as image:
+                if image.mode != 'RGB' or image.size != (row['width'], row['height']):
+                    raise ValueError('Host filter must be an RGB8 LUT: ' + row['file'])
+                rgba = np.array(image.convert('RGBA'), dtype=np.uint8)
+            relative = 'host-filters/luts/' + row['id'] + '.rgba'
+            (stage / relative).write_bytes(rgba.tobytes())
+            host_filters.append({'id': row['id'], 'file': relative, 'width': row['width'], 'height': row['height']})
+        (stage / 'host-filters/index.json').write_text(json.dumps({'schema': 1, 'filters': host_filters}, indent=2) + '\n', encoding='utf-8')
         catalog = {'skin': [], 'shape': [], 'filters': [], 'makeup': [
             {'key': style['key'], 'label': style['name'], 'icon': '', 'filter': style['filter']}
             for style in source['styles']]}
@@ -73,7 +95,7 @@ def prepare():
             OUTPUT.rename(build / ('makeup-backup-' + uuid.uuid4().hex))
         OUTPUT.parent.mkdir(parents=True, exist_ok=True)
         stage.rename(OUTPUT)
-    print(f'Prepared host makeup: {len(images)} images / {len(source["styles"])} styles from shared sample assets')
+    print(f'Prepared host makeup: {len(images)} images / {len(source["styles"])} styles from shared sample assets, plus 10 host filters')
     return OUTPUT
 
 

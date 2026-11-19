@@ -6,6 +6,8 @@ import { CameraPreview } from '../model/CameraPreview';
 import { EffectOption, EffectSettings } from '../model/EffectSettings';
 
 interface FilterCatalog { inputScale: Record<string, number>; }
+interface HostFilter { id: string; file: string; width: number; height: number; }
+interface HostFilterIndex { schema: number; filters: HostFilter[]; }
 
 @Entry
 @Component
@@ -37,7 +39,18 @@ struct Index {
       this.root = assets.root;
       // Read the actual LUT list rather than the SDK demo's curated catalog subset.
       const filters = JSON.parse(fs.readTextSync(`${assets.root}/snapbeauty/luts/luts.json`)) as FilterCatalog;
-      this.settings.initialize(context, assets.catalog, Object.keys(filters.inputScale).sort());
+      // CC BY-SA host filters shipped with this app (host-filters/NOTICE.md), registered like built-in ones.
+      const hostFilters = JSON.parse(fs.readTextSync(`${assets.root}/host-filters/index.json`)) as HostFilterIndex;
+      for (const f of hostFilters.filters) {
+        const file = fs.openSync(`${assets.root}/${f.file}`, fs.OpenMode.READ_ONLY);
+        try {
+          const rgba = new ArrayBuffer(f.width * f.height * 4);
+          if (fs.readSync(file.fd, rgba) !== rgba.byteLength) { throw new Error(`滤镜资源不完整: ${f.id}`); }
+          this.engine.registerFilter(f.id, rgba, f.width, f.height);
+        } finally { fs.closeSync(file); }
+      }
+      this.settings.initialize(context, assets.catalog,
+        Object.keys(filters.inputScale).concat(hostFilters.filters.map((f: HostFilter) => f.id)).sort());
       this.settings.apply(this.engine);
       this.ready = true;
       this.refresh();

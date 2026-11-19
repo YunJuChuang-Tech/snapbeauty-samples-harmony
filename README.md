@@ -27,7 +27,7 @@
 
 ### 依赖准备与安装
 
-在仓库根目录下执行准备脚本，从 OHPM 下载并校验 `@snapbeauty/core` 1.3.1 HAR 包，并自动准备宿主美妆资源：
+在仓库根目录下执行准备脚本，从 OHPM 下载并校验 `@snapbeauty/core` 1.3.2 HAR 包，并自动准备宿主美妆资源：
 
 ```powershell
 # 校验并准备 SDK 依赖与宿主美妆资源
@@ -80,3 +80,11 @@ snapbeauty-samples-harmony/
 1. **示例工程源码**：本项目除第三方组件外的示例代码及自有素材均遵循 [Apache License 2.0](LICENSE) 开源。
 2. **底层 SDK 说明**：`@snapbeauty/core` 为商业专有美颜 SDK，从 OHPM 官方仓库获取，其使用及商业再分发遵循 SnapBeauty 官方商业授权条款。
 3. **第三方声明**：有关运行时依赖与开源许可详情，参见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+
+### 滤镜 LUT
+
+`harmony/HostAssetsSource/host-filters/luts/` 中的 10 张滤镜（`bright3`、`rose3`、`stylized11`、`mono1`、`warm1`、`warm2`、`fresh1`、`muted5`、`natural2`、`natural4`）不属于 SnapBeauty SDK，由本示例随 App 一起打包，由 `prepare_makeup.py` 解码为 RGBA 后随 HAP 打包，启动时用 SDK 的 `registerFilter` 注册，之后和 SDK 内置滤镜一样用 `setFilter` 选择。
+
+- 素材来源：RawTherapee Film Simulation Collection 2015-09-20（https://rawtherapee.com/shared/HaldCLUT.zip ），作者 **Pat David、Pavlov Dmitry、Michael Ezra**。
+- 改动：重采样为 64³，用强度、提亮、冷暖、色调、饱和度、对比度六个全局参数调整，再三线性采样为 16³ 并量化为 RGB8（256×16）。
+- 基于本示例发布 App 时，如保留这些滤镜，须一并保留上述署名与许可文件；不需要时删除该目录即可，其余功能不受影响。
