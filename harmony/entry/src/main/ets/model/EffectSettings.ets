@@ -33,7 +33,7 @@ export const FACE: EffectOption[] = [
   new EffectOption('browPosition', '眉高', 0.5), new EffectOption('browDistance', '眉间距', 0.5),
   new EffectOption('browThickness', '眉毛粗细', 0.5)
 ];
-const DEFAULT_SKIN: number[] = [0.35, 0.2, 0.1, 0, 0, 0, 0, 0, 0, 0, 0];
+const DEFAULT_SKIN: number[] = [0.6, 0.5, 0.1, 0, 0, 0, 0, 0, 0, 0, 0];
 const SETTINGS_SCHEMA: number = 2;
 
 function seriesName(family: string): string {
@@ -77,7 +77,7 @@ export class EffectSettings {
   filter: string = '';
   filterStrength: number = 0.4;
   makeup: string = '';
-  makeupStrength: number = 0.4;
+  makeupStrength: number = 0.6;
   coupled: boolean = false;
   front: boolean = true;
   tab: number = 0;
@@ -119,6 +119,8 @@ export class EffectSettings {
       }
       this.selected[2] = this.makeups.findIndex((item: EffectOption) => item.id === this.makeup);
       this.selected[3] = this.filters.findIndex((item: EffectOption) => item.id === this.filter);
+      // Each entry starts with the requested effect defaults; keep the saved camera choice.
+      this.useAndroidDefaults();
     } catch (_) { /* Invalid or older preferences keep safe defaults. */ }
   }
 
@@ -155,12 +157,12 @@ export class EffectSettings {
     else { this.select(0); }
   }
   reset(): void { this.useAndroidDefaults(); }
-  /** Android first-open and full reset: mild skin, neutral shape, first makeup with its paired filter at 40%. */
+  /** Android first-open and full reset: mild skin, neutral shape, first makeup with its paired filter at 60%. */
   private useAndroidDefaults(): void {
     this.skin = DEFAULT_SKIN.slice();
     this.face = FACE.map((item: EffectOption) => item.neutral);
     this.makeup = ''; this.filter = ''; this.coupled = false;
-    this.makeupStrength = 0.4; this.filterStrength = 0.4; this.selected = [0, 0, 0, 0];
+    this.makeupStrength = 0.6; this.filterStrength = 0.6; this.selected = [0, 0, 0, 0];
     if (this.makeups.length > 1) {
       const tab = this.tab;
       this.tab = 2;

@@ -41,7 +41,8 @@ const catalog = JSON.parse(fs.readFileSync(path.join(hostAssets, 'catalog.json')
 check(!fs.existsSync(path.join(assets, 'catalog.json')), 'SDK has no panel catalog');
 check(!fs.existsSync(path.join(assets, 'makeup')), 'SDK has no host lip files');
 check(!fs.existsSync(path.join(assets, 'icons')), 'SDK has no demo artwork');
-const filterIds = Object.keys(JSON.parse(fs.readFileSync(path.join(assets, 'snapbeauty/luts/luts.json'))).inputScale).sort();
+const filterIds = Object.keys(JSON.parse(fs.readFileSync(path.join(assets, 'snapbeauty/luts/luts.json'))).inputScale)
+  .concat(JSON.parse(fs.readFileSync(path.join(hostAssets, 'host-filters/index.json'))).filters.map(item => item.id)).sort();
 const settings = new EffectSettings();
 settings.initialize({}, catalog, filterIds);
 equal(SKIN.length, 11); equal(FACE.length, 25);
@@ -53,7 +54,7 @@ equal(filterLabel('rose3'), '玫瑰 3'); equal(filterLabel('stylized11'), '个�
 check(filterLabel('nope').startsWith('光谱 ') && !filterLabel('nope').includes('nope'), 'unknown filter series is not the raw id');
 equal(settings.makeup, catalog.makeup[0].key, 'first visit selects the first makeup');
 equal(settings.filter, catalog.makeup[0].filter, 'first visit applies the paired filter');
-equal(settings.makeupStrength, 0.4); equal(settings.filterStrength, 0.4); equal(settings.coupled, true);
+equal(settings.makeupStrength, 0.6); equal(settings.filterStrength, 0.6); equal(settings.coupled, true);
 const duplicated = new EffectSettings();
 duplicated.initialize({}, catalog, ['rose3', 'rose3', 'bright1']);
 equal([...duplicated.filters.map(item => item.id)], ['', 'bright1', 'rose3']);
@@ -64,8 +65,8 @@ equal(engine.maxFaces, 1); equal(engine.frameBudgetMs, 1000 / 30);
 equal(engine.makeup, catalog.makeup[0].key); equal(engine.filter, catalog.makeup[0].filter);
 const snapshot = () => JSON.parse(JSON.stringify({ skin: engine.skin, face: engine.face }));
 const baseline = snapshot();
-equal(baseline.skin.smoothing, 0.35 * 6, 'normalized smoothing scales to SDK 0–6');
-equal(baseline.skin.brightening, 0.2); equal(baseline.skin.rosiness, 0.1); equal(baseline.skin.sharpness, 0);
+equal(baseline.skin.smoothing, 0.6 * 6, 'normalized smoothing scales to SDK 0–6');
+equal(baseline.skin.brightening, 0.5); equal(baseline.skin.rosiness, 0.1); equal(baseline.skin.sharpness, 0);
 // Each UI control must change only its corresponding public SDK property.
 for (const tab of [0, 1]) {
   settings.tab = tab;
@@ -88,15 +89,15 @@ settings.tab = 2; settings.select(0); equal(settings.filter, manual, 'removing m
 settings.select(1); settings.select(0); equal(settings.filter, '', 'removing makeup clears coupled LUT');
 settings.tab = 2; settings.select(3); settings.change(0.63); settings.front = false; settings.save();
 const restored = new EffectSettings(); restored.initialize({}, catalog, filterIds);
-equal(JSON.parse(JSON.stringify(restored.skin)), JSON.parse(JSON.stringify(settings.skin)));
-equal(restored.makeup, settings.makeup); equal(restored.filter, settings.filter);
-equal(restored.makeupStrength, 0.63); equal(restored.front, false);
+equal(restored.skin[0], 0.6); equal(restored.skin[1], 0.5);
+equal(restored.makeup, catalog.makeup[0].key); equal(restored.filter, catalog.makeup[0].filter);
+equal(restored.makeupStrength, 0.6); equal(restored.front, false);
 persisted = '{broken'; const damaged = new EffectSettings(); damaged.initialize({}, catalog, filterIds);
-equal(damaged.skin[0], 0.35, 'damaged preferences fall back');
+equal(damaged.skin[0], 0.6, 'damaged preferences fall back');
 equal(damaged.makeup, catalog.makeup[0].key, 'damaged preferences still open the default makeup');
 persisted = '{"schema":1,"skin":[0.7,0.3,0.3,0.2,0,0,0,0,0,0,0],"makeup":"","filter":""}';
 const legacy = new EffectSettings(); legacy.initialize({}, catalog, filterIds);
-equal(legacy.skin[0], 0.35, 'older panel records use the Android defaults');
+equal(legacy.skin[0], 0.6, 'older panel records use the Android defaults');
 equal(legacy.makeup, catalog.makeup[0].key); equal(legacy.filter, catalog.makeup[0].filter);
 
 async function cameraChecks() {
