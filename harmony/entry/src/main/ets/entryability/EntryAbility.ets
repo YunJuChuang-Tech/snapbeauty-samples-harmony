@@ -12,7 +12,8 @@ export default class EntryAbility extends UIAbility {
       license = new util.TextDecoder('utf-8').decodeToString(
         this.context.resourceManager.getRawFileContentSync('snapbeauty.license'));
     } catch (_) { /* The optional application-bound license is not installed. */ }
-    SnapBeauty.init(this.context, license);
+    const status = SnapBeauty.init(this.context, license);
+    console.info(`SnapBeauty license status: code=${status.code}, usable=${status.usable}, features=${status.featureBits}`);
     stage.getMainWindow().then(async (main: window.Window) => {
       await main.setPreferredOrientation(window.Orientation.PORTRAIT);
     }).catch(() => {}).then(() => { stage.loadContent('pages/Index'); });
