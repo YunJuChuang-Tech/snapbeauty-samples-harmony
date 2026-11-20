@@ -2,10 +2,10 @@
   "version": "1.2.0",
   "artifacts": {
     "harmony": {
-      "version": "1.3.2",
-      "file": "core-1.3.2.har",
-      "bytes": 4990844,
-      "sha256": "6ad981c6c01d29782c3b163b384c7278668bbac51accd4246fff7dda2546bf69"
+      "version": "1.3.4",
+      "file": "core-1.3.4.har",
+      "bytes": 5760833,
+      "sha256": "285f9950d1e9a409b89d9e31343222505acd69184f59dac53abe897552ec874e"
     }
   }
 }
