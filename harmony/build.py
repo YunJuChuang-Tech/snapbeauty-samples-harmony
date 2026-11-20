@@ -31,6 +31,9 @@ def main():
             if not member.isfile():
                 continue
             relative = member.name.removeprefix('package/')
+            # OHPM verifies the HAR signature and does not install signature metadata.
+            if relative in ('.CodeSignature/codeFileList', '.CodeSignature/signature'):
+                continue
             expected = archive.extractfile(member).read()
             if (installed / relative).read_bytes() != expected:
                 raise SystemExit(f'Installed HAR content differs from the pinned release: {relative}')
