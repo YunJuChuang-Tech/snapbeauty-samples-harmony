@@ -18,7 +18,7 @@ struct Index {
   @State tab: number = 0;
   @State options: EffectOption[] = [];
   @State selected: number = 0;
-  @State strength: number = 0.7;
+  @State strength: number = 0.35;
   @State bidirectional: boolean = false;
   @State panel: boolean = true;
   @State original: boolean = false;
@@ -144,7 +144,7 @@ struct Index {
                 .layoutWeight(1).selectedColor('#F2BD91')
                 .enabled(this.tab < 2 || this.selected > 0)
                 .onChange((value: number) => { this.settings.change(value / 100); this.update(); })
-              Button('还原').fontSize(12).backgroundColor('#303C4B')
+              Button('恢复默认').fontSize(12).backgroundColor('#303C4B')
                 .onClick(() => { this.settings.resetItem(); this.update(); })
             }.width('100%')
           }.padding({ left: 16, right: 16, bottom: 20 }).width('100%').backgroundColor('#F2192332')

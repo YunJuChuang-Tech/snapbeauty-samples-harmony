@@ -1,4 +1,4 @@
-# SnapBeauty 宿主滤镜包（CC BY-SA 4.0）：来源、署名与改动
+# SnapBeauty 宿主滤镜包
 
 本目录的 10 张滤镜 LUT 不随 SDK 分发。需要这些滤镜的 App 自行打包本目录，并在运行时通过 SDK 的
 `registerFilter` 接口注册，之后 `setFilter("<id>", 强度)` 的用法与内置滤镜相同。打包本目录的 App 是这些

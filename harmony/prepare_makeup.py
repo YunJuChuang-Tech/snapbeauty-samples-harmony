@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import tempfile
 import uuid
+import zlib
 
 import numpy as np
 from PIL import Image
@@ -24,12 +25,21 @@ def prepare():
         images = {}
 
         def save(data, suffix):
-            digest = hashlib.sha256(data).hexdigest()
-            relative = 'decoded/' + digest + suffix
+            raw_digest = hashlib.sha256(data).hexdigest()
+            compressed = zlib.compress(data, level=6)
+            digest = hashlib.sha256(compressed).hexdigest()
+            relative = 'decoded/' + digest + suffix + '.zlib'
             path = stage / relative
             path.parent.mkdir(exist_ok=True)
-            path.write_bytes(data)
-            return {'file': relative, 'sha256': digest, 'bytes': len(data)}
+            path.write_bytes(compressed)
+            return {
+                'file': relative,
+                'sha256': digest,
+                'rawSha256': raw_digest,
+                'bytes': len(data),
+                'compressedBytes': len(compressed),
+                'encoding': 'zlib',
+            }
 
         for relative, record in source['files'].items():
             path = (SOURCE / relative).resolve()

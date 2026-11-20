@@ -13,26 +13,53 @@ export class EffectOption {
 export const SKIN: EffectOption[] = [
   new EffectOption('smoothing', '磨皮'), new EffectOption('brightening', '美白'),
   new EffectOption('rosiness', '红润'), new EffectOption('sharpness', '锐化'),
-  new EffectOption('texture', '质感'), new EffectOption('blemishRemoval', '祛斑痘'),
+  new EffectOption('texture', '清晰'), new EffectOption('blemishRemoval', '祛斑痘'),
   new EffectOption('eyeBrightening', '亮眼'), new EffectOption('teethWhitening', '美牙'),
-  new EffectOption('undereyeBags', '淡化眼袋'), new EffectOption('smileLines', '淡化法令纹'),
-  new EffectOption('faceContour', '轮廓立体')
+  new EffectOption('undereyeBags', '去黑眼圈'), new EffectOption('smileLines', '去法令纹'),
+  new EffectOption('faceContour', '五官立体')
 ];
 export const FACE: EffectOption[] = [
   new EffectOption('faceSlimming', '瘦脸'), new EffectOption('faceVTaper', 'V 脸'),
   new EffectOption('faceNarrowing', '窄脸'), new EffectOption('faceShortening', '短脸'),
   new EffectOption('faceShrinking', '小脸'), new EffectOption('cheekboneWidth', '颧骨'),
-  new EffectOption('jawWidth', '下颌'), new EffectOption('eyeScale', '大眼'),
+  new EffectOption('jawWidth', '下颌骨'), new EffectOption('eyeScale', '大眼'),
   new EffectOption('eyeRoundness', '圆眼'), new EffectOption('chinLength', '下巴', 0.5),
-  new EffectOption('foreheadHeight', '额头', 0.5), new EffectOption('noseWidth', '鼻翼'),
+  new EffectOption('foreheadHeight', '额头', 0.5), new EffectOption('noseWidth', '瘦鼻'),
   new EffectOption('mouthSize', '嘴型', 0.5), new EffectOption('lipFullness', '唇厚', 0.5),
-  new EffectOption('eyePosition', '眼位', 0.5), new EffectOption('eyeCornerOpening', '眼角'),
-  new EffectOption('eyelidFold', '眼睑'), new EffectOption('eyeDistance', '眼距', 0.5),
-  new EffectOption('eyeTilt', '眼睛角度', 0.5), new EffectOption('noseLength', '鼻长', 0.5),
-  new EffectOption('philtrumLength', '人中', 0.5), new EffectOption('mouthCorners', '嘴角'),
-  new EffectOption('browPosition', '眉位', 0.5), new EffectOption('browDistance', '眉距', 0.5),
-  new EffectOption('browThickness', '眉厚', 0.5)
+  new EffectOption('eyePosition', '眼睛高度', 0.5), new EffectOption('eyeCornerOpening', '开眼角'),
+  new EffectOption('eyelidFold', '眼睑下至'), new EffectOption('eyeDistance', '眼距', 0.5),
+  new EffectOption('eyeTilt', '眼睛倾斜', 0.5), new EffectOption('noseLength', '鼻长', 0.5),
+  new EffectOption('philtrumLength', '人中', 0.5), new EffectOption('mouthCorners', '微笑嘴角'),
+  new EffectOption('browPosition', '眉高', 0.5), new EffectOption('browDistance', '眉间距', 0.5),
+  new EffectOption('browThickness', '眉毛粗细', 0.5)
 ];
+const DEFAULT_SKIN: number[] = [0.35, 0.2, 0.1, 0, 0, 0, 0, 0, 0, 0, 0];
+const SETTINGS_SCHEMA: number = 2;
+
+function seriesName(family: string): string {
+  if (family === 'bright') { return '明亮'; }
+  if (family === 'rose') { return '玫瑰'; }
+  if (family === 'stylized') { return '个性'; }
+  if (family === 'mono') { return '黑白'; }
+  if (family === 'cool') { return '冷调'; }
+  if (family === 'peach') { return '蜜桃'; }
+  if (family === 'warm') { return '暖调'; }
+  if (family === 'fresh') { return '清新'; }
+  if (family === 'muted') { return '柔灰'; }
+  if (family === 'natural') { return '自然'; }
+  return '';
+}
+/** Same visible names as the Android sample: series plus the numeric suffix, never the raw LUT id. */
+export function filterLabel(key: string): string {
+  let end = key.length;
+  while (end > 0 && key.charCodeAt(end - 1) >= 48 && key.charCodeAt(end - 1) <= 57) { end--; }
+  const series = seriesName(key.substring(0, end));
+  if (series.length > 0) { return `${series} ${key.substring(end)}`; }
+  let hash = 0;
+  for (let i = 0; i < key.length; i++) { hash = (Math.imul(31, hash) + key.charCodeAt(i)) | 0; }
+  const hex = (hash < 0 ? hash + 4294967296 : hash).toString(16);
+  return `光谱 ${hex.length > 4 ? hex.substring(hex.length - 4) : hex}`;
+}
 interface SavedSettings {
   schema: number; skin: number[]; face: number[]; filter: string; filterStrength: number;
   makeup: string; makeupStrength: number; coupled: boolean; front: boolean; tab: number; selected: number[];
@@ -43,9 +70,9 @@ function unit(value: number, fallback: number = 0): number {
 }
 
 export class EffectSettings {
-  skin: number[] = [0.7, 0.3, 0.3, 0.2, 0, 0, 0, 0, 0, 0, 0];
+  skin: number[] = DEFAULT_SKIN.slice();
   face: number[] = FACE.map((item: EffectOption) => item.neutral);
-  filters: EffectOption[] = [new EffectOption('', '无滤镜')];
+  filters: EffectOption[] = [new EffectOption('', '原色')];
   makeups: EffectOption[] = [new EffectOption('', '无妆')];
   filter: string = '';
   filterStrength: number = 0.4;
@@ -60,13 +87,19 @@ export class EffectSettings {
 
   initialize(context: common.UIAbilityContext, catalog: Catalog, filterIds: string[]): void {
     this.catalog = catalog;
-    this.filters = [new EffectOption('', '无滤镜')].concat(filterIds.filter((id: string) => id !== 'origin')
-      .map((id: string) => new EffectOption(id, id)));
-    this.makeups = [new EffectOption('', '无妆')].concat(catalog.makeup.map((row) => new EffectOption(row.key, row.key)));
+    const filterKeys: string[] = [];
+    for (const id of filterIds) {
+      if (id !== 'origin' && !filterKeys.includes(id)) { filterKeys.push(id); }
+    }
+    filterKeys.sort();
+    this.filters = [new EffectOption('', '原色')].concat(filterKeys.map((id: string) => new EffectOption(id, filterLabel(id))));
+    this.makeups = [new EffectOption('', '无妆')].concat(catalog.makeup.map((row) =>
+      new EffectOption(row.key, row.label.length > 0 ? row.label : row.key)));
+    this.useAndroidDefaults();
     this.store = preferences.getPreferencesSync(context, { name: 'camera-effects-v1' });
     try {
       const saved = JSON.parse(this.store.getSync('settings', '{}') as string) as SavedSettings;
-      if (saved.schema !== 1) { return; }
+      if (saved.schema !== SETTINGS_SCHEMA) { return; }
       if (Array.isArray(saved.skin) && saved.skin.length === SKIN.length) {
         this.skin = saved.skin.map((value: number, i: number) => unit(value, this.skin[i]));
       }
@@ -121,11 +154,19 @@ export class EffectSettings {
     if (this.tab < 2) { this.change(this.options()[this.selected[this.tab]].neutral); }
     else { this.select(0); }
   }
-  reset(): void {
-    this.skin = [0.7, 0.3, 0.3, 0.2, 0, 0, 0, 0, 0, 0, 0];
+  reset(): void { this.useAndroidDefaults(); }
+  /** Android first-open and full reset: mild skin, neutral shape, first makeup with its paired filter at 40%. */
+  private useAndroidDefaults(): void {
+    this.skin = DEFAULT_SKIN.slice();
     this.face = FACE.map((item: EffectOption) => item.neutral);
     this.makeup = ''; this.filter = ''; this.coupled = false;
     this.makeupStrength = 0.4; this.filterStrength = 0.4; this.selected = [0, 0, 0, 0];
+    if (this.makeups.length > 1) {
+      const tab = this.tab;
+      this.tab = 2;
+      this.select(1);
+      this.tab = tab;
+    }
   }
   apply(engine: SnapBeautyEngine): void {
     const s = new SkinParams();
@@ -144,11 +185,13 @@ export class EffectSettings {
     f.mouthCorners = this.face[21]; f.browPosition = this.face[22]; f.browDistance = this.face[23];
     f.browThickness = this.face[24];
     engine.skin = s; engine.face = f;
-    engine.setMakeup(this.makeup, this.makeupStrength);
+    engine.maxFaces = 1;
+    engine.frameBudgetMs = 1000 / 30;
+    engine.setMakeup(this.makeup.length === 0 || this.makeupStrength <= 0 ? '' : this.makeup, this.makeupStrength);
     engine.setFilter(this.filter, this.filterStrength);
   }
   save(): void {
-    const snapshot: SavedSettings = { schema: 1, skin: this.skin, face: this.face, filter: this.filter,
+    const snapshot: SavedSettings = { schema: SETTINGS_SCHEMA, skin: this.skin, face: this.face, filter: this.filter,
       filterStrength: this.filterStrength, makeup: this.makeup, makeupStrength: this.makeupStrength,
       coupled: this.coupled, front: this.front, tab: this.tab, selected: this.selected };
     this.store?.putSync('settings', JSON.stringify(snapshot));

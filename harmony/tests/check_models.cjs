@@ -32,7 +32,7 @@ check(fs.existsSync(path.join(installed, 'ets/modules.abc')), 'compiled SDK byte
 let persisted = '{}';
 const preferences = { getPreferencesSync: () => ({ getSync: () => persisted,
   putSync: (_, value) => { persisted = value; }, flush: () => Promise.resolve() }) };
-const { EffectSettings, SKIN, FACE } = load(path.join(root, 'entry/src/main/ets/model/EffectSettings.ets'), {
+const { EffectSettings, SKIN, FACE, filterLabel } = load(path.join(root, 'entry/src/main/ets/model/EffectSettings.ets'), {
   '@snapbeauty/core': sdk, '@ohos.data.preferences': { default: preferences }
 });
 const assets = path.join(installed, 'src/main/resources/rawfile/engine');
@@ -45,13 +45,27 @@ const filterIds = Object.keys(JSON.parse(fs.readFileSync(path.join(assets, 'snap
 const settings = new EffectSettings();
 settings.initialize({}, catalog, filterIds);
 equal(SKIN.length, 11); equal(FACE.length, 25);
+equal([...SKIN.map(item => item.label)], ['磨皮', '美白', '红润', '锐化', '清晰', '祛斑痘', '亮眼', '美牙', '去黑眼圈', '去法令纹', '五官立体']);
+equal([...FACE.map(item => item.label)], ['瘦脸', 'V 脸', '窄脸', '短脸', '小脸', '颧骨', '下颌骨', '大眼', '圆眼', '下巴', '额头', '瘦鼻', '嘴型', '唇厚', '眼睛高度', '开眼角', '眼睑下至', '眼距', '眼睛倾斜', '鼻长', '人中', '微笑嘴角', '眉高', '眉间距', '眉毛粗细']);
 equal(settings.filters.length, 28); equal(settings.makeups.length, 16);
+equal(settings.makeups[1].label, '晨曦'); equal(settings.filters[0].label, '原色');
+equal(filterLabel('rose3'), '玫瑰 3'); equal(filterLabel('stylized11'), '个性 11');
+check(filterLabel('nope').startsWith('光谱 ') && !filterLabel('nope').includes('nope'), 'unknown filter series is not the raw id');
+equal(settings.makeup, catalog.makeup[0].key, 'first visit selects the first makeup');
+equal(settings.filter, catalog.makeup[0].filter, 'first visit applies the paired filter');
+equal(settings.makeupStrength, 0.4); equal(settings.filterStrength, 0.4); equal(settings.coupled, true);
+const duplicated = new EffectSettings();
+duplicated.initialize({}, catalog, ['rose3', 'rose3', 'bright1']);
+equal([...duplicated.filters.map(item => item.id)], ['', 'bright1', 'rose3']);
 const engine = { skin: {}, face: {}, setMakeup(id, strength) { this.makeup = id; this.makeupStrength = strength; },
   setFilter(id, strength) { this.filter = id; this.filterStrength = strength; } };
 settings.apply(engine);
+equal(engine.maxFaces, 1); equal(engine.frameBudgetMs, 1000 / 30);
+equal(engine.makeup, catalog.makeup[0].key); equal(engine.filter, catalog.makeup[0].filter);
 const snapshot = () => JSON.parse(JSON.stringify({ skin: engine.skin, face: engine.face }));
 const baseline = snapshot();
-equal(baseline.skin.smoothing, 0.7 * 6, 'normalized smoothing scales to SDK 0–6');
+equal(baseline.skin.smoothing, 0.35 * 6, 'normalized smoothing scales to SDK 0–6');
+equal(baseline.skin.brightening, 0.2); equal(baseline.skin.rosiness, 0.1); equal(baseline.skin.sharpness, 0);
 // Each UI control must change only its corresponding public SDK property.
 for (const tab of [0, 1]) {
   settings.tab = tab;
@@ -78,7 +92,12 @@ equal(JSON.parse(JSON.stringify(restored.skin)), JSON.parse(JSON.stringify(setti
 equal(restored.makeup, settings.makeup); equal(restored.filter, settings.filter);
 equal(restored.makeupStrength, 0.63); equal(restored.front, false);
 persisted = '{broken'; const damaged = new EffectSettings(); damaged.initialize({}, catalog, filterIds);
-equal(damaged.skin[0], 0.7, 'damaged preferences fall back');
+equal(damaged.skin[0], 0.35, 'damaged preferences fall back');
+equal(damaged.makeup, catalog.makeup[0].key, 'damaged preferences still open the default makeup');
+persisted = '{"schema":1,"skin":[0.7,0.3,0.3,0.2,0,0,0,0,0,0,0],"makeup":"","filter":""}';
+const legacy = new EffectSettings(); legacy.initialize({}, catalog, filterIds);
+equal(legacy.skin[0], 0.35, 'older panel records use the Android defaults');
+equal(legacy.makeup, catalog.makeup[0].key); equal(legacy.filter, catalog.makeup[0].filter);
 
 async function cameraChecks() {
   let log = [], holdPermission, holdInput, failCommit = false;

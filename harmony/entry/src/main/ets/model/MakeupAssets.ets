@@ -6,7 +6,7 @@ import { Catalog, InstalledAssets } from '@snapbeauty/core';
 
 interface AssetFile { path: string; bytes: number; sha256: string; }
 interface Manifest { schema: number; files: AssetFile[]; }
-interface DecodedFile { file: string; sha256: string; bytes: number; }
+interface DecodedFile { file: string; sha256: string; bytes: number; encoding?: string; rawSha256?: string; compressedBytes?: number; }
 interface ImageRecord extends DecodedFile {
   width: number; height: number; premultiplied: boolean; argb?: DecodedFile;
 }
@@ -87,7 +87,12 @@ async function install(context: common.UIAbilityContext): Promise<InstalledAsset
     }
     for (const key of Object.keys(makeupIndex.images)) {
       if (!key.startsWith('makeup/')) { throw new Error('宿主妆容索引路径无效'); }
-      engineIndex.images[key] = makeupIndex.images[key];
+      const item = makeupIndex.images[key];
+      if ((item.encoding !== undefined && item.encoding !== 'zlib') ||
+        (item.argb?.encoding !== undefined && item.argb.encoding !== 'zlib')) {
+        throw new Error(`不支持的图像编码: ${key}`);
+      }
+      engineIndex.images[key] = item;
     }
     writeFile(`${root}/resources.json`, new util.TextEncoder().encodeInto(JSON.stringify(engineIndex)));
     writeFile(marker, new Uint8Array([1]));
