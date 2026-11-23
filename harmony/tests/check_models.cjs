@@ -25,7 +25,7 @@ function load(file, modules) {
 const installed = path.join(root, 'entry/oh_modules/@snapbeauty/core');
 const sdk = { SkinParams: class {}, FaceParams: class {}, SnapBeautyEngine: class {} };
 const api = fs.readFileSync(path.join(installed, 'src/main/ets/SnapBeautyEngine.d.ets'), 'utf8');
-for (const member of ['SnapBeautyEngine', 'SkinParams', 'FaceParams', 'setMakeup', 'setFilter', 'attach', 'release']) {
+for (const member of ['SnapBeautyEngine', 'SkinParams', 'FaceParams', 'setMakeup', 'setFilter', 'setLipstick', 'attach', 'release']) {
   check(api.includes(member), `Published SDK declaration: ${member}`);
 }
 check(fs.existsSync(path.join(installed, 'ets/modules.abc')), 'compiled SDK bytecode is supplied');
@@ -59,10 +59,16 @@ const duplicated = new EffectSettings();
 duplicated.initialize({}, catalog, ['rose3', 'rose3', 'bright1']);
 equal([...duplicated.filters.map(item => item.id)], ['', 'bright1', 'rose3']);
 const engine = { skin: {}, face: {}, setMakeup(id, strength) { this.makeup = id; this.makeupStrength = strength; },
-  setFilter(id, strength) { this.filter = id; this.filterStrength = strength; } };
+  setFilter(id, strength) { this.filter = id; this.filterStrength = strength; },
+  setLipstick(rgba, strength) { this.lipstick = rgba; this.lipstickStrength = strength; } };
 settings.apply(engine);
 equal(engine.maxFaces, 1); equal(engine.frameBudgetMs, 1000 / 30);
 equal(engine.makeup, catalog.makeup[0].key); equal(engine.filter, catalog.makeup[0].filter);
+settings.tab = 4; settings.select(1); settings.change(0.35); settings.apply(engine);
+equal([...engine.lipstick], [0.611, 0.352, 0.352, 0.5]); equal(engine.lipstickStrength, 0.35);
+settings.select(2); settings.change(0.8); settings.select(1); equal(settings.strength(), 0.35);
+settings.select(0); settings.apply(engine); equal(engine.lipstick, null); equal(engine.makeup, catalog.makeup[0].key);
+settings.reset(); settings.apply(engine);
 const snapshot = () => JSON.parse(JSON.stringify({ skin: engine.skin, face: engine.face }));
 const baseline = snapshot();
 equal(baseline.skin.smoothing, 0.6 * 6, 'normalized smoothing scales to SDK 0–6');

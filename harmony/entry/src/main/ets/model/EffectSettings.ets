@@ -33,6 +33,11 @@ export const FACE: EffectOption[] = [
   new EffectOption('browPosition', '眉高', 0.5), new EffectOption('browDistance', '眉间距', 0.5),
   new EffectOption('browThickness', '眉毛粗细', 0.5)
 ];
+const LIPSTICKS: EffectOption[] = [new EffectOption('', '无'), new EffectOption('coral', '珊瑚色'),
+  new EffectOption('grapefruit', '西柚色'), new EffectOption('rosewood', '豆沙粉'),
+  new EffectOption('tangerine', '元气橘'), new EffectOption('vintage', '复古红')];
+const LIP_COLORS: number[][] = [[], [.611, .352, .352, .500], [.752, .267, .231, .543],
+  [.713, .374, .409, .517], [.786, .326, .252, .629], [.476, .018, .025, .777]];
 const DEFAULT_SKIN: number[] = [0.6, 0.5, 0.1, 0, 0, 0, 0, 0, 0, 0, 0];
 const SETTINGS_SCHEMA: number = 2;
 
@@ -81,7 +86,8 @@ export class EffectSettings {
   coupled: boolean = false;
   front: boolean = true;
   tab: number = 0;
-  selected: number[] = [0, 0, 0, 0];
+  selected: number[] = [0, 0, 0, 0, 0];
+  lipstickLevels: number[] = [0.6, 0.6, 0.6, 0.6, 0.6, 0.6];
   private catalog: Catalog | undefined;
   private store: preferences.Preferences | undefined;
 
@@ -125,7 +131,7 @@ export class EffectSettings {
   }
 
   options(tab: number = this.tab): EffectOption[] {
-    return tab === 0 ? SKIN : tab === 1 ? FACE : tab === 2 ? this.makeups : this.filters;
+    return tab === 0 ? SKIN : tab === 1 ? FACE : tab === 2 ? this.makeups : tab === 3 ? this.filters : LIPSTICKS;
   }
   select(index: number): void {
     this.selected[this.tab] = index;
@@ -143,7 +149,7 @@ export class EffectSettings {
   }
   strength(): number {
     return this.tab === 0 ? this.skin[this.selected[0]] : this.tab === 1 ? this.face[this.selected[1]] :
-      this.tab === 2 ? this.makeupStrength : this.filterStrength;
+      this.tab === 2 ? this.makeupStrength : this.tab === 3 ? this.filterStrength : this.lipstickLevels[this.selected[4]];
   }
   change(value: number): void {
     const v = unit(value);
@@ -151,6 +157,7 @@ export class EffectSettings {
     if (this.tab === 1) { this.face[this.selected[1]] = v; }
     if (this.tab === 2) { this.makeupStrength = v; if (this.coupled) { this.filterStrength = v; } }
     if (this.tab === 3) { this.filterStrength = v; this.coupled = false; }
+    if (this.tab === 4) { this.lipstickLevels[this.selected[4]] = v; }
   }
   resetItem(): void {
     if (this.tab < 2) { this.change(this.options()[this.selected[this.tab]].neutral); }
@@ -162,7 +169,7 @@ export class EffectSettings {
     this.skin = DEFAULT_SKIN.slice();
     this.face = FACE.map((item: EffectOption) => item.neutral);
     this.makeup = ''; this.filter = ''; this.coupled = false;
-    this.makeupStrength = 0.6; this.filterStrength = 0.6; this.selected = [0, 0, 0, 0];
+    this.makeupStrength = 0.6; this.filterStrength = 0.6; this.selected = [0, 0, 0, 0, 0]; this.lipstickLevels = [0.6, 0.6, 0.6, 0.6, 0.6, 0.6];
     if (this.makeups.length > 1) {
       const tab = this.tab;
       this.tab = 2;
@@ -191,6 +198,8 @@ export class EffectSettings {
     engine.frameBudgetMs = 1000 / 30;
     engine.setMakeup(this.makeup.length === 0 || this.makeupStrength <= 0 ? '' : this.makeup, this.makeupStrength);
     engine.setFilter(this.filter, this.filterStrength);
+    const lip = this.selected[4];
+    engine.setLipstick(lip > 0 ? LIP_COLORS[lip] : null, lip > 0 ? this.lipstickLevels[lip] : 0);
   }
   save(): void {
     const snapshot: SavedSettings = { schema: SETTINGS_SCHEMA, skin: this.skin, face: this.face, filter: this.filter,
