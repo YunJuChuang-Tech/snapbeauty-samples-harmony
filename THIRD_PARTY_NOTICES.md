@@ -2,7 +2,7 @@
 
 The sample source and original artwork follow the repository Apache 2.0 license. The SnapBeauty SDK, models and effect resources are separately licensed; check the provider terms and bundled notices for use and redistribution.
 
-The HarmonyOS sample uses `@snapbeauty/core` 1.3.5; the signed candidate has not yet been submitted to OHPM; its HAR and dependencies are not committed. OpenHarmony SDK and Hvigor are acquired separately and subject to their own licenses.
+The HarmonyOS sample uses `@snapbeauty/core` 1.3.6; the signed candidate has not yet been submitted to OHPM; its HAR and dependencies are not committed. OpenHarmony SDK and Hvigor are acquired separately and subject to their own licenses.
 
 The makeup artwork in `harmony/HostAssetsSource` was authored for this sample using equations and pigment values; SDK layer identifiers and UV anchors are used for interoperability. The HarmonyOS application icon is original artwork.
 

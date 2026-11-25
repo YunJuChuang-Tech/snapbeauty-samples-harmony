@@ -17,7 +17,7 @@
 
 ---
 
-> 鸿蒙 SDK 1.3.5 的签名候选包尚未提交 OHPM；公开前远程依赖和默认下载不可用。持有候选 HAR 时可按下方说明使用本地包验证。
+> 鸿蒙 SDK 1.3.6 的签名候选包尚未提交 OHPM；公开前远程依赖和默认下载不可用。持有候选 HAR 时可按下方说明使用本地包验证。
 
 ## 快速开始
 
@@ -29,7 +29,7 @@
 
 ### 依赖准备与安装
 
-在仓库根目录下执行准备脚本，在 OHPM 上架后从仓库下载并校验 `@snapbeauty/core` 1.3.5 HAR 包，并自动准备宿主美妆资源；上架前可通过 `--har` 指定与锁文件匹配的签名候选包：
+在仓库根目录下执行准备脚本，在 OHPM 上架后从仓库下载并校验 `@snapbeauty/core` 1.3.6 HAR 包，并自动准备宿主美妆资源；上架前可通过 `--har` 指定与锁文件匹配的签名候选包：
 
 ```powershell
 # 校验并准备 SDK 依赖与宿主美妆资源
@@ -40,7 +40,7 @@ cd harmony
 ohpm install
 ```
 
-上架前若已取得与 `sdk.lock.json` 匹配的候选 HAR，可在隔离副本中先执行 `python harmony/prepare.py --har C:/path/to/core-1.3.5.har`，再将该副本 `harmony/entry/oh-package.json5` 中的依赖临时改为本地 HAR 路径并执行 `ohpm install`。候选文件和本地锁文件不应提交；审核通过后重新下载公开包并核对摘要。
+上架前若已取得与 `sdk.lock.json` 匹配的候选 HAR，可在隔离副本中先执行 `python harmony/prepare.py --har C:/path/to/core-1.3.6.har`，再将该副本 `harmony/entry/oh-package.json5` 中的依赖临时改为本地 HAR 路径并执行 `ohpm install`。候选文件和本地锁文件不应提交；审核通过后重新下载公开包并核对摘要。
 
 ### 构建与运行
 

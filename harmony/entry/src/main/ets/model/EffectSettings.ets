@@ -39,7 +39,7 @@ const LIPSTICKS: EffectOption[] = [new EffectOption('', '无'), new EffectOption
 const LIP_COLORS: number[][] = [[], [.611, .352, .352, .500], [.752, .267, .231, .543],
   [.713, .374, .409, .517], [.786, .326, .252, .629], [.476, .018, .025, .777]];
 const DEFAULT_SKIN: number[] = [0.6, 0.48, 0.1, 0, 0.12, 0.38, 0.28, 0, 0.45, 0.35, 0.28];
-const MALE_SKIN: number[] = [0.45, 0.22, 0.08, 0.16, 0.16, 0.35, 0.20, 0, 0.40, 0.20, 0.40];
+const MALE_SKIN: number[] = [0.65, 0.38, 0.12, 0.22, 0.06, 0.48, 0.28, 0, 0.55, 0.35, 0.18];
 const SETTINGS_SCHEMA: number = 2;
 
 function seriesName(family: string): string {
@@ -176,10 +176,11 @@ export class EffectSettings {
     if (male) {
       this.skin = MALE_SKIN.slice();
       this.face = FACE.map((item: EffectOption) => item.neutral);
+      this.face[0] = 0.24; this.face[1] = 0.16; this.face[4] = 0.15; this.face[7] = 0.18; this.face[11] = 0.14;
       this.makeup = ''; this.filter = ''; this.coupled = false;
       this.makeupStrength = 0.6; this.filterStrength = 0.0;
       this.selected = [this.selected[0], this.selected[1], 0, 0, 1];
-      this.lipstickLevels = [0.6, 0.18, 0.6, 0.6, 0.6, 0.6];
+      this.lipstickLevels = [0.6, 0.26, 0.6, 0.6, 0.6, 0.6];
     } else {
       this.useAndroidDefaults();
     }
