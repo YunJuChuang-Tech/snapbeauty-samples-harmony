@@ -38,7 +38,8 @@ const LIPSTICKS: EffectOption[] = [new EffectOption('', '无'), new EffectOption
   new EffectOption('tangerine', '元气橘'), new EffectOption('vintage', '复古红')];
 const LIP_COLORS: number[][] = [[], [.611, .352, .352, .500], [.752, .267, .231, .543],
   [.713, .374, .409, .517], [.786, .326, .252, .629], [.476, .018, .025, .777]];
-const DEFAULT_SKIN: number[] = [0.6, 0.5, 0.1, 0, 0, 0, 0, 0, 0, 0, 0];
+const DEFAULT_SKIN: number[] = [0.6, 0.48, 0.1, 0, 0.12, 0.38, 0.28, 0, 0.45, 0.35, 0.28];
+const MALE_SKIN: number[] = [0.45, 0.22, 0.08, 0.16, 0.16, 0.35, 0.20, 0, 0.40, 0.20, 0.40];
 const SETTINGS_SCHEMA: number = 2;
 
 function seriesName(family: string): string {
@@ -88,6 +89,7 @@ export class EffectSettings {
   tab: number = 0;
   selected: number[] = [0, 0, 0, 0, 0];
   lipstickLevels: number[] = [0.6, 0.6, 0.6, 0.6, 0.6, 0.6];
+  malePreset: boolean = false;
   private catalog: Catalog | undefined;
   private store: preferences.Preferences | undefined;
 
@@ -160,12 +162,32 @@ export class EffectSettings {
     if (this.tab === 4) { this.lipstickLevels[this.selected[4]] = v; }
   }
   resetItem(): void {
-    if (this.tab < 2) { this.change(this.options()[this.selected[this.tab]].neutral); }
-    else { this.select(0); }
+    if (this.tab === 0) {
+      const defaults = this.malePreset ? MALE_SKIN : DEFAULT_SKIN;
+      this.change(defaults[this.selected[0]]);
+    } else if (this.tab === 1) {
+      this.change(this.options()[this.selected[1]].neutral);
+    } else {
+      this.select(0);
+    }
   }
-  reset(): void { this.useAndroidDefaults(); }
-  /** Android first-open and full reset: mild skin, neutral shape, first makeup with its paired filter at 60%. */
+  applyGenderPreset(male: boolean): void {
+    this.malePreset = male;
+    if (male) {
+      this.skin = MALE_SKIN.slice();
+      this.face = FACE.map((item: EffectOption) => item.neutral);
+      this.makeup = ''; this.filter = ''; this.coupled = false;
+      this.makeupStrength = 0.6; this.filterStrength = 0.0;
+      this.selected = [this.selected[0], this.selected[1], 0, 0, 1];
+      this.lipstickLevels = [0.6, 0.18, 0.6, 0.6, 0.6, 0.6];
+    } else {
+      this.useAndroidDefaults();
+    }
+  }
+  reset(): void { this.applyGenderPreset(this.malePreset); }
+  /** Female first-open and full reset: balanced skin, neutral shape, first makeup with its paired filter at 60%. */
   private useAndroidDefaults(): void {
+    this.malePreset = false;
     this.skin = DEFAULT_SKIN.slice();
     this.face = FACE.map((item: EffectOption) => item.neutral);
     this.makeup = ''; this.filter = ''; this.coupled = false;

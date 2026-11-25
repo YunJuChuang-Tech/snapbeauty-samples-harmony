@@ -21,6 +21,7 @@ struct Index {
   @State strength: number = 0.35;
   @State bidirectional: boolean = false;
   @State panel: boolean = true;
+  @State malePreset: boolean = false;
   @State scene: boolean = false;
   @State original: boolean = false;
   private controller: XComponentController = new XComponentController();
@@ -75,6 +76,7 @@ struct Index {
     this.selected = this.settings.selected[this.tab];
     this.strength = this.settings.strength();
     this.bidirectional = this.options[this.selected]?.neutral === 0.5;
+    this.malePreset = this.settings.malePreset;
   }
   private update(): void { this.settings.apply(this.engine); this.settings.save(); this.refresh(); }
   private valueLabel(): string {
@@ -99,96 +101,107 @@ struct Index {
         }.justifyContent(FlexAlign.Center).alignItems(HorizontalAlign.Start).padding({ left: 24, right: 24 })
           .width('100%').height('100%')
       } else {
-        Row({ space: 10 }) {
-          Text('‹').fontSize(30).fontColor('#DDFF9A').width(30).onClick(() => {
+        Row({ space: 8 }) {
+          Text('‹').fontSize(26).fontColor('#DDFF9A').width(24).onClick(() => {
             this.clearOriginal(); this.scene = false; this.requestCamera();
           })
-          Text('✦').fontSize(28).fontColor('#DDFF9A')
-          Column({ space: 4 }) {
-            Text('SNAPBEAUTY').fontSize(14).fontWeight(FontWeight.Bold).fontColor('#F2F4EC')
-            Text('SAMPLES  /  相机体验').fontSize(10).fontColor('#A3ADA4')
+          Text('✦').fontSize(22).fontColor('#DDFF9A')
+          Column({ space: 2 }) {
+            Text('SNAPBEAUTY').fontSize(12).fontWeight(FontWeight.Bold).fontColor('#F2F4EC')
+            Text('SAMPLES  /  相机体验').fontSize(9).fontColor('#A3ADA4')
           }.alignItems(HorizontalAlign.Start).layoutWeight(1)
-          Text('01').fontSize(12).fontColor('#DDFF9A')
-        }.width('100%').padding({ left: 16, right: 16, top: 12, bottom: 12 })
+          Text('01').fontSize(11).fontColor('#DDFF9A')
+        }.width('100%').padding({ left: 14, right: 14, top: 6, bottom: 6 })
         Stack({ alignContent: Alignment.Bottom }) {
           XComponent({ id: 'camera-preview', type: XComponentType.SURFACE, controller: this.controller })
             .width('100%').height('100%')
             .onLoad(() => { this.surface = this.controller.getXComponentSurfaceId(); this.requestCamera(); })
             .onDestroy(() => { this.surface = ''; this.clearOriginal(); this.requestCamera(); })
+            .onClick(() => { this.clearOriginal(); this.panel = !this.panel; })
           Column() {
-            Row() {
-              Text('●  LIVE PREVIEW').fontSize(10).fontWeight(FontWeight.Bold).fontColor('#DDFF9A')
-                .padding(12).backgroundColor('#B3101311').borderRadius(20)
+            Row({ space: 6 }) {
+              Text(this.original ? '正在查看原图' : this.message).fontSize(10).fontColor('#F2F4EC').maxLines(1)
+                .padding({ left: 10, right: 10, top: 6, bottom: 6 }).backgroundColor('#88101311').borderRadius(14)
               Blank()
-              Button('翻转').fontSize(12).fontColor('#F2F4EC').backgroundColor('#B3101311').enabled(this.ready)
+              Row({ space: 2 }) {
+                Text('女生').fontSize(11).fontWeight(!this.malePreset ? FontWeight.Bold : FontWeight.Normal)
+                  .fontColor(!this.malePreset ? '#101311' : '#F2F4EC')
+                  .padding({ left: 10, right: 10, top: 4, bottom: 4 })
+                  .backgroundColor(!this.malePreset ? '#DDFF9A' : Color.Transparent).borderRadius(12)
+                  .onClick(() => { this.clearOriginal(); this.settings.applyGenderPreset(false); this.update(); })
+                Text('男生').fontSize(11).fontWeight(this.malePreset ? FontWeight.Bold : FontWeight.Normal)
+                  .fontColor(this.malePreset ? '#101311' : '#F2F4EC')
+                  .padding({ left: 10, right: 10, top: 4, bottom: 4 })
+                  .backgroundColor(this.malePreset ? '#DDFF9A' : Color.Transparent).borderRadius(12)
+                  .onClick(() => { this.clearOriginal(); this.settings.applyGenderPreset(true); this.update(); })
+              }.padding(3).backgroundColor('#99101311').borderRadius(15)
+              Button('翻转').fontSize(11).fontColor('#F2F4EC').backgroundColor('#99101311').height(28)
+                .padding({ left: 10, right: 10 }).enabled(this.ready)
                 .onClick(() => { this.clearOriginal(); this.settings.front = !this.settings.front; this.settings.save(); this.requestCamera(); })
-            }.width('100%').padding(12)
+            }.width('100%').padding({ left: 12, right: 12, top: 10 })
             Blank()
-            if (this.original) { Text('原图').fontColor('#F2F4EC').padding(8).backgroundColor('#B3101311').borderRadius(18) }
-            Text(this.message).fontSize(12).fontColor('#F2F4EC').padding(10).backgroundColor('#B3101311')
-              .borderRadius(18).margin({ bottom: 12 })
-            if (this.ready) {
-              Text('重试预览').fontSize(11).fontColor('#DDFF9A').padding(8).onClick(() => {
-                this.clearOriginal(); this.requestCamera();
-              })
-            }
-          }.width('100%').height('100%')
-        }.width('100%').layoutWeight(1)
-        Column() {
-          Column({ space: 5 }) {
-            Text('━━━━').fontSize(10).fontColor('#657365')
-            Text(this.panel ? '收起面板  ↓' : '展开效果面板  ↑').fontSize(11).fontColor('#DDFF9A')
-          }.width('100%').height(48).justifyContent(FlexAlign.Center).onClick(() => {
-            this.clearOriginal(); this.panel = !this.panel;
-          }).gesture(PanGesture({ direction: PanDirection.Vertical }).onActionEnd((event: GestureEvent) => {
-            if (event.offsetY > 20) { this.clearOriginal(); this.panel = false; }
-            if (event.offsetY < -20) { this.panel = true; }
-          }))
-          if (this.panel && this.ready) {
-            Row() {
-              ForEach(['美肤', '美型', '妆容', '滤镜', '口红'], (title: string, index: number) => {
-                Text(title).fontSize(15).fontWeight(this.tab === index ? FontWeight.Bold : FontWeight.Normal)
-                  .fontColor(this.tab === index ? '#DDFF9A' : '#A3ADA4').layoutWeight(1).textAlign(TextAlign.Center)
-                  .height(44).onClick(() => { this.settings.tab = index; this.refresh(); })
-              })
-            }.width('100%')
-            Scroll() {
-              Row({ space: 6 }) {
-                ForEach(this.options, (item: EffectOption, index: number) => {
-                  Text(item.label).fontSize(12).fontColor(this.selected === index ? '#101311' : '#F2F4EC')
-                    .padding({ left: 14, right: 14, top: 10, bottom: 10 })
-                    .backgroundColor(this.selected === index ? '#DDFF9A' : '#2B332D').borderRadius(18)
-                    .onClick(() => { this.settings.select(index); this.update(); })
-                }, (item: EffectOption) => item.id)
+            Row({ space: 8 }) {
+              Blank()
+              if (this.ready) {
+                Text('重试').fontSize(10).fontColor('#DDFF9A')
+                  .padding({ left: 10, right: 10, top: 5, bottom: 5 }).backgroundColor('#88101311').borderRadius(14)
+                  .onClick(() => { this.clearOriginal(); this.requestCamera(); })
               }
-            }.scrollable(ScrollDirection.Horizontal).scrollBar(BarState.Off).width('100%').height(48)
-            Row() {
-              Text(this.tab === 2 ? '妆容浓度' : this.tab === 3 ? '滤镜' : this.tab === 4 ? '口红' : this.options[this.selected]?.label || '强度')
-                .fontSize(12).fontColor('#F2F4EC').layoutWeight(1)
-              if (this.tab < 2) {
-                Text('恢复默认').fontSize(11).fontColor('#A3ADA4').padding(8)
-                  .onClick(() => { this.settings.resetItem(); this.update(); })
-              }
-              Text(this.valueLabel()).fontSize(13).fontColor('#DDFF9A').width(36).textAlign(TextAlign.End)
-            }.width('100%').height(36)
-            Slider({ value: this.strength * 100, min: 0, max: 100, step: 1 })
-              .width('100%').height(40).selectedColor('#DDFF9A').enabled(this.tab < 2 || this.selected > 0)
-              .onChange((value: number) => { this.settings.change(value / 100); this.update(); })
-            Text(this.tab === 4 && this.selected === 0 ? '选择口红后可调强度' : '左右滑动选项 · 调节效果强度')
-              .fontSize(10).fontColor('#A3ADA4').width('100%').height(32)
-            Row({ space: 16 }) {
-              Button('重置').fontSize(12).fontColor('#F2F4EC').backgroundColor('#303A31').width(72).height(48)
+              Button('重置').fontSize(11).fontColor('#F2F4EC').backgroundColor('#99101311').height(28)
+                .padding({ left: 12, right: 12 })
                 .onClick(() => { this.clearOriginal(); this.settings.reset(); this.update(); })
-              Button(this.original ? '正在查看原图' : '按住对比原图').fontSize(14).fontWeight(FontWeight.Bold)
-                .fontColor('#101311').backgroundColor('#DDFF9A').layoutWeight(1).height(48)
+              Button(this.original ? '正在查看原图' : '按住对比原图').fontSize(11).fontWeight(FontWeight.Bold)
+                .fontColor('#101311').backgroundColor('#D9DDFF9A').height(28).padding({ left: 12, right: 12 })
                 .onTouch((event: TouchEvent) => {
                   if (event.type === TouchType.Down) { this.original = true; this.engine.setShowOriginal(true); }
                   if (event.type === TouchType.Up || event.type === TouchType.Cancel) { this.clearOriginal(); }
                 })
-            }.width('100%').padding({ bottom: 12 })
-          }
-        }.width('100%').padding({ left: 20, right: 20 }).backgroundColor('#191E1A')
-          .borderRadius({ topLeft: 24, topRight: 24 })
+            }.width('100%').padding({ left: 12, right: 12, bottom: 6 })
+            Column() {
+              Row({ space: 8 }) {
+                Text('━━').fontSize(10).fontColor('#95A496')
+                Text(this.panel ? '收起面板  ↓' : '展开效果面板  ↑').fontSize(10).fontColor('#DDFF9A')
+              }.width('100%').height(28).justifyContent(FlexAlign.Center).onClick(() => {
+                this.clearOriginal(); this.panel = !this.panel;
+              }).gesture(PanGesture({ direction: PanDirection.Vertical }).onActionEnd((event: GestureEvent) => {
+                if (event.offsetY > 20) { this.clearOriginal(); this.panel = false; }
+                if (event.offsetY < -20) { this.panel = true; }
+              }))
+              if (this.panel && this.ready) {
+                Row({ space: 6 }) {
+                  Text(this.tab === 2 ? '妆容浓度' : this.tab === 3 ? '滤镜' : this.tab === 4 ? '口红' : this.options[this.selected]?.label || '强度')
+                    .fontSize(11).fontColor('#F2F4EC').maxLines(1)
+                  Slider({ value: this.strength * 100, min: 0, max: 100, step: 1 })
+                    .layoutWeight(1).height(28).selectedColor('#DDFF9A').enabled(this.tab < 2 || this.selected > 0)
+                    .onChange((value: number) => { this.settings.change(value / 100); this.update(); })
+                  Text(this.valueLabel()).fontSize(12).fontColor('#DDFF9A').width(30).textAlign(TextAlign.End)
+                  if (this.tab < 2) {
+                    Text('恢复').fontSize(10).fontColor('#A3ADA4').padding({ left: 4, right: 2 })
+                      .onClick(() => { this.settings.resetItem(); this.update(); })
+                  }
+                }.width('100%').height(32)
+                Scroll() {
+                  Row({ space: 5 }) {
+                    ForEach(this.options, (item: EffectOption, index: number) => {
+                      Text(item.label).fontSize(11).fontColor(this.selected === index ? '#101311' : '#F2F4EC')
+                        .padding({ left: 11, right: 11, top: 6, bottom: 6 })
+                        .backgroundColor(this.selected === index ? '#DDFF9A' : '#7A262D28').borderRadius(14)
+                        .onClick(() => { this.settings.select(index); this.update(); })
+                    }, (item: EffectOption) => item.id)
+                  }
+                }.scrollable(ScrollDirection.Horizontal).scrollBar(BarState.Off).width('100%').height(36)
+                Row() {
+                  ForEach(['美肤', '美型', '妆容', '滤镜', '口红'], (title: string, index: number) => {
+                    Text(title).fontSize(13).fontWeight(this.tab === index ? FontWeight.Bold : FontWeight.Normal)
+                      .fontColor(this.tab === index ? '#DDFF9A' : '#A3ADA4').layoutWeight(1).textAlign(TextAlign.Center)
+                      .height(34).onClick(() => { this.settings.tab = index; this.refresh(); })
+                  })
+                }.width('100%').padding({ bottom: 6 })
+              }
+            }.width('100%').padding({ left: 14, right: 14 }).backgroundColor('#A8101411')
+              .borderRadius({ topLeft: 20, topRight: 20 })
+          }.width('100%').height('100%').hitTestBehavior(HitTestMode.Transparent)
+        }.width('100%').layoutWeight(1)
       }
     }.width('100%').height('100%').backgroundColor('#101311')
   }
