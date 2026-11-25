@@ -4,9 +4,9 @@
     "harmony": {
       "version": "1.3.6",
       "file": "core-1.3.6.har",
-      "bytes": 5824886,
-      "sha256": "33a0bc3697f05179085bdd366ca3c90a6c39995d780125262e0998054e1070be",
-      "status": "local-signed-candidate-not-submitted"
+      "bytes": 5825069,
+      "sha256": "3edd5b1dc16ed7d402a136e87383a4425499499a52c322391e3aada3adf717db",
+      "status": "submitted-to-ohpm-under-review"
     }
   }
 }
