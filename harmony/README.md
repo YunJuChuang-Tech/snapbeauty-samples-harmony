@@ -4,13 +4,13 @@
 
 相机页提供 11 项美肤、25 项美型、与 Android 同源的 15 套自制妆容、5 个独立口红色号及 27 个 LUT。选项名称与 Android 一致：美肤、美型使用同一套中文名，妆容用清单中文名，滤镜按系列显示（如「玫瑰 3」），关闭滤镜为「原色」。进入和全部重置为磨皮 60、美白 50、红润 10，其余美肤 0、美型中性，并选中晨曦妆容及其搭配滤镜，浓度 60。更早保存在本机的面板记录不再沿用。另支持联动浓度、单项恢复默认、按住对比、面板收放和前后镜头；人脸上限 1、帧预算约 33.3 ms。
 
-鸿蒙固定使用 OHPM 上的 SnapBeauty **1.3.6**，根目录 `sdk.lock.json` 暂锁定已提交 OHPM 审核的签名候选包；公开后须重新下载并核对大小与 SHA-256。HAR 不含妆容贴图、唇色、面板图标和目录；`prepare_makeup.py` 从 `harmony/HostAssetsSource/` 的 53 份原创素材生成鸿蒙的宿主资源，`MakeupAssets.ets` 校验并合并图像索引后交给引擎。SDK 新增能力尚未全部提供示例 UI。美颜效果需要有效应用绑定 License；未授权时返回原图。TRTC、Agora、ZEGO 鸿蒙场景尚未实现。
+鸿蒙固定使用 OHPM 上公开的 SnapBeauty **1.3.9**，根目录 `sdk.lock.json` 记录公开 HAR 的大小与 SHA-256。HAR 不含妆容贴图、唇色、面板图标和目录；`prepare_makeup.py` 从 `harmony/HostAssetsSource/` 的 53 份原创素材生成鸿蒙的宿主资源，`MakeupAssets.ets` 校验并合并图像索引后交给引擎。SDK 新增能力尚未全部提供示例 UI。美颜效果需要有效应用绑定 License；未授权时返回原图。TRTC、Agora、ZEGO 鸿蒙场景尚未实现。
 
 ## 准备与构建
 
 需要 Python 3.9+、NumPy、Pillow、Node.js、OHPM 5.x，以及可编译 API12 的 DevEco / OpenHarmony 工具链。本次验证使用 OpenHarmony **5.0.0.71/API12** 和 Hvigor/plugin **5.7.0**，不是商业 HarmonyOS SDK 认证结果。
 
-OHPM 上架后，在仓库根目录准备并校验已发布的 HAR：
+在仓库根目录准备并校验已发布的 HAR：
 
 ```powershell
 python harmony/prepare.py
@@ -18,7 +18,7 @@ cd harmony
 ohpm install
 ```
 
-脚本从 OHPM 下载 HAR，校验大小、SHA-256、包身份和资源边界，保存一份到 `.local/snapbeauty.har` 供构建核对，并生成 `entry/src/main/resources/rawfile/demo-makeup/`。应用依赖由 OHPM 根据 `entry/oh-package.json5` 远程解析；上架前可用 `--har` 校验本地候选，但还须在隔离副本中将 entry 的依赖临时改为该 HAR 的本地文件路径后再执行 `ohpm install`。原生库与基础 rawfile 由 Hvigor 自动合并；宿主妆容由本工程提供。随包 NOTICE 和 Monocypher 声明保留在应用内。修改共用妆容后重新运行 `python harmony/prepare_makeup.py`，或直接运行 `build.py`，构建会自动刷新。
+脚本从 OHPM 下载 HAR，校验大小、SHA-256、包身份和资源边界，保存一份到 `.local/snapbeauty.har` 供构建核对，并生成 `entry/src/main/resources/rawfile/demo-makeup/`。应用依赖由 OHPM 根据 `entry/oh-package.json5` 远程解析；也可用 `--har` 校验本地的同一公开版本；如需改用本地 HAR 安装，请在隔离副本中将 entry 的依赖改为该 HAR 的本地文件路径后再执行 `ohpm install`。原生库与基础 rawfile 由 Hvigor 自动合并；宿主妆容由本工程提供。随包 NOTICE 和 Monocypher 声明保留在应用内。修改共用妆容后重新运行 `python harmony/prepare_makeup.py`，或直接运行 `build.py`，构建会自动刷新。
 
 DevEco Studio 打开 `harmony/`，Sync 后构建 entry/default；在 Signing Configs 配置设备签名后运行。签名私钥、设备证书、构建依赖和 SDK 载荷均不入库。
 
